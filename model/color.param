@@ -1,0 +1,107 @@
+7767517
+105 121
+Input                    input                    0 1 input
+Convolution              /conv1/Conv              1 1 input /relu/Relu_output_0 0=64 1=7 3=2 4=3 5=1 6=9408 9=1
+Pooling                  /maxpool/MaxPool         1 1 /relu/Relu_output_0 /maxpool/MaxPool_output_0 1=3 2=2 3=1 5=1
+Split                    splitncnn_0              1 2 /maxpool/MaxPool_output_0 /maxpool/MaxPool_output_0_splitncnn_0 /maxpool/MaxPool_output_0_splitncnn_1
+Convolution              /layer1/layer1.0/conv1/Conv 1 1 /maxpool/MaxPool_output_0_splitncnn_1 /layer1/layer1.0/relu/Relu_output_0 0=64 1=1 5=1 6=4096 9=1
+Convolution              /layer1/layer1.0/conv2/Conv 1 1 /layer1/layer1.0/relu/Relu_output_0 /layer1/layer1.0/relu_1/Relu_output_0 0=64 1=3 4=1 5=1 6=36864 9=1
+Convolution              /layer1/layer1.0/conv3/Conv 1 1 /layer1/layer1.0/relu_1/Relu_output_0 /layer1/layer1.0/conv3/Conv_output_0 0=256 1=1 5=1 6=16384
+Convolution              /layer1/layer1.0/downsample/downsample.0/Conv 1 1 /maxpool/MaxPool_output_0_splitncnn_0 /layer1/layer1.0/downsample/downsample.0/Conv_output_0 0=256 1=1 5=1 6=16384
+BinaryOp                 /layer1/layer1.0/Add     2 1 /layer1/layer1.0/conv3/Conv_output_0 /layer1/layer1.0/downsample/downsample.0/Conv_output_0 /layer1/layer1.0/Add_output_0
+ReLU                     /layer1/layer1.0/relu_2/Relu 1 1 /layer1/layer1.0/Add_output_0 /layer1/layer1.0/relu_2/Relu_output_0
+Split                    splitncnn_1              1 2 /layer1/layer1.0/relu_2/Relu_output_0 /layer1/layer1.0/relu_2/Relu_output_0_splitncnn_0 /layer1/layer1.0/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer1/layer1.1/conv1/Conv 1 1 /layer1/layer1.0/relu_2/Relu_output_0_splitncnn_1 /layer1/layer1.1/relu/Relu_output_0 0=64 1=1 5=1 6=16384 9=1
+Convolution              /layer1/layer1.1/conv2/Conv 1 1 /layer1/layer1.1/relu/Relu_output_0 /layer1/layer1.1/relu_1/Relu_output_0 0=64 1=3 4=1 5=1 6=36864 9=1
+Convolution              /layer1/layer1.1/conv3/Conv 1 1 /layer1/layer1.1/relu_1/Relu_output_0 /layer1/layer1.1/conv3/Conv_output_0 0=256 1=1 5=1 6=16384
+BinaryOp                 /layer1/layer1.1/Add     2 1 /layer1/layer1.1/conv3/Conv_output_0 /layer1/layer1.0/relu_2/Relu_output_0_splitncnn_0 /layer1/layer1.1/Add_output_0
+ReLU                     /layer1/layer1.1/relu_2/Relu 1 1 /layer1/layer1.1/Add_output_0 /layer1/layer1.1/relu_2/Relu_output_0
+Split                    splitncnn_2              1 2 /layer1/layer1.1/relu_2/Relu_output_0 /layer1/layer1.1/relu_2/Relu_output_0_splitncnn_0 /layer1/layer1.1/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer1/layer1.2/conv1/Conv 1 1 /layer1/layer1.1/relu_2/Relu_output_0_splitncnn_1 /layer1/layer1.2/relu/Relu_output_0 0=64 1=1 5=1 6=16384 9=1
+Convolution              /layer1/layer1.2/conv2/Conv 1 1 /layer1/layer1.2/relu/Relu_output_0 /layer1/layer1.2/relu_1/Relu_output_0 0=64 1=3 4=1 5=1 6=36864 9=1
+Convolution              /layer1/layer1.2/conv3/Conv 1 1 /layer1/layer1.2/relu_1/Relu_output_0 /layer1/layer1.2/conv3/Conv_output_0 0=256 1=1 5=1 6=16384
+BinaryOp                 /layer1/layer1.2/Add     2 1 /layer1/layer1.2/conv3/Conv_output_0 /layer1/layer1.1/relu_2/Relu_output_0_splitncnn_0 /layer1/layer1.2/Add_output_0
+ReLU                     /layer1/layer1.2/relu_2/Relu 1 1 /layer1/layer1.2/Add_output_0 /layer1/layer1.2/relu_2/Relu_output_0
+Split                    splitncnn_3              1 2 /layer1/layer1.2/relu_2/Relu_output_0 /layer1/layer1.2/relu_2/Relu_output_0_splitncnn_0 /layer1/layer1.2/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer2/layer2.0/conv1/Conv 1 1 /layer1/layer1.2/relu_2/Relu_output_0_splitncnn_1 /layer2/layer2.0/relu/Relu_output_0 0=128 1=1 5=1 6=32768 9=1
+Convolution              /layer2/layer2.0/conv2/Conv 1 1 /layer2/layer2.0/relu/Relu_output_0 /layer2/layer2.0/relu_1/Relu_output_0 0=128 1=3 3=2 4=1 5=1 6=147456 9=1
+Convolution              /layer2/layer2.0/conv3/Conv 1 1 /layer2/layer2.0/relu_1/Relu_output_0 /layer2/layer2.0/conv3/Conv_output_0 0=512 1=1 5=1 6=65536
+Convolution              /layer2/layer2.0/downsample/downsample.0/Conv 1 1 /layer1/layer1.2/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.0/downsample/downsample.0/Conv_output_0 0=512 1=1 3=2 5=1 6=131072
+BinaryOp                 /layer2/layer2.0/Add     2 1 /layer2/layer2.0/conv3/Conv_output_0 /layer2/layer2.0/downsample/downsample.0/Conv_output_0 /layer2/layer2.0/Add_output_0
+ReLU                     /layer2/layer2.0/relu_2/Relu 1 1 /layer2/layer2.0/Add_output_0 /layer2/layer2.0/relu_2/Relu_output_0
+Split                    splitncnn_4              1 2 /layer2/layer2.0/relu_2/Relu_output_0 /layer2/layer2.0/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.0/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer2/layer2.1/conv1/Conv 1 1 /layer2/layer2.0/relu_2/Relu_output_0_splitncnn_1 /layer2/layer2.1/relu/Relu_output_0 0=128 1=1 5=1 6=65536 9=1
+Convolution              /layer2/layer2.1/conv2/Conv 1 1 /layer2/layer2.1/relu/Relu_output_0 /layer2/layer2.1/relu_1/Relu_output_0 0=128 1=3 4=1 5=1 6=147456 9=1
+Convolution              /layer2/layer2.1/conv3/Conv 1 1 /layer2/layer2.1/relu_1/Relu_output_0 /layer2/layer2.1/conv3/Conv_output_0 0=512 1=1 5=1 6=65536
+BinaryOp                 /layer2/layer2.1/Add     2 1 /layer2/layer2.1/conv3/Conv_output_0 /layer2/layer2.0/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.1/Add_output_0
+ReLU                     /layer2/layer2.1/relu_2/Relu 1 1 /layer2/layer2.1/Add_output_0 /layer2/layer2.1/relu_2/Relu_output_0
+Split                    splitncnn_5              1 2 /layer2/layer2.1/relu_2/Relu_output_0 /layer2/layer2.1/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.1/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer2/layer2.2/conv1/Conv 1 1 /layer2/layer2.1/relu_2/Relu_output_0_splitncnn_1 /layer2/layer2.2/relu/Relu_output_0 0=128 1=1 5=1 6=65536 9=1
+Convolution              /layer2/layer2.2/conv2/Conv 1 1 /layer2/layer2.2/relu/Relu_output_0 /layer2/layer2.2/relu_1/Relu_output_0 0=128 1=3 4=1 5=1 6=147456 9=1
+Convolution              /layer2/layer2.2/conv3/Conv 1 1 /layer2/layer2.2/relu_1/Relu_output_0 /layer2/layer2.2/conv3/Conv_output_0 0=512 1=1 5=1 6=65536
+BinaryOp                 /layer2/layer2.2/Add     2 1 /layer2/layer2.2/conv3/Conv_output_0 /layer2/layer2.1/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.2/Add_output_0
+ReLU                     /layer2/layer2.2/relu_2/Relu 1 1 /layer2/layer2.2/Add_output_0 /layer2/layer2.2/relu_2/Relu_output_0
+Split                    splitncnn_6              1 2 /layer2/layer2.2/relu_2/Relu_output_0 /layer2/layer2.2/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.2/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer2/layer2.3/conv1/Conv 1 1 /layer2/layer2.2/relu_2/Relu_output_0_splitncnn_1 /layer2/layer2.3/relu/Relu_output_0 0=128 1=1 5=1 6=65536 9=1
+Convolution              /layer2/layer2.3/conv2/Conv 1 1 /layer2/layer2.3/relu/Relu_output_0 /layer2/layer2.3/relu_1/Relu_output_0 0=128 1=3 4=1 5=1 6=147456 9=1
+Convolution              /layer2/layer2.3/conv3/Conv 1 1 /layer2/layer2.3/relu_1/Relu_output_0 /layer2/layer2.3/conv3/Conv_output_0 0=512 1=1 5=1 6=65536
+BinaryOp                 /layer2/layer2.3/Add     2 1 /layer2/layer2.3/conv3/Conv_output_0 /layer2/layer2.2/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.3/Add_output_0
+ReLU                     /layer2/layer2.3/relu_2/Relu 1 1 /layer2/layer2.3/Add_output_0 /layer2/layer2.3/relu_2/Relu_output_0
+Split                    splitncnn_7              1 2 /layer2/layer2.3/relu_2/Relu_output_0 /layer2/layer2.3/relu_2/Relu_output_0_splitncnn_0 /layer2/layer2.3/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.0/conv1/Conv 1 1 /layer2/layer2.3/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.0/relu/Relu_output_0 0=256 1=1 5=1 6=131072 9=1
+Convolution              /layer3/layer3.0/conv2/Conv 1 1 /layer3/layer3.0/relu/Relu_output_0 /layer3/layer3.0/relu_1/Relu_output_0 0=256 1=3 3=2 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.0/conv3/Conv 1 1 /layer3/layer3.0/relu_1/Relu_output_0 /layer3/layer3.0/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+Convolution              /layer3/layer3.0/downsample/downsample.0/Conv 1 1 /layer2/layer2.3/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.0/downsample/downsample.0/Conv_output_0 0=1024 1=1 3=2 5=1 6=524288
+BinaryOp                 /layer3/layer3.0/Add     2 1 /layer3/layer3.0/conv3/Conv_output_0 /layer3/layer3.0/downsample/downsample.0/Conv_output_0 /layer3/layer3.0/Add_output_0
+ReLU                     /layer3/layer3.0/relu_2/Relu 1 1 /layer3/layer3.0/Add_output_0 /layer3/layer3.0/relu_2/Relu_output_0
+Split                    splitncnn_8              1 2 /layer3/layer3.0/relu_2/Relu_output_0 /layer3/layer3.0/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.0/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.1/conv1/Conv 1 1 /layer3/layer3.0/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.1/relu/Relu_output_0 0=256 1=1 5=1 6=262144 9=1
+Convolution              /layer3/layer3.1/conv2/Conv 1 1 /layer3/layer3.1/relu/Relu_output_0 /layer3/layer3.1/relu_1/Relu_output_0 0=256 1=3 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.1/conv3/Conv 1 1 /layer3/layer3.1/relu_1/Relu_output_0 /layer3/layer3.1/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+BinaryOp                 /layer3/layer3.1/Add     2 1 /layer3/layer3.1/conv3/Conv_output_0 /layer3/layer3.0/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.1/Add_output_0
+ReLU                     /layer3/layer3.1/relu_2/Relu 1 1 /layer3/layer3.1/Add_output_0 /layer3/layer3.1/relu_2/Relu_output_0
+Split                    splitncnn_9              1 2 /layer3/layer3.1/relu_2/Relu_output_0 /layer3/layer3.1/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.1/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.2/conv1/Conv 1 1 /layer3/layer3.1/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.2/relu/Relu_output_0 0=256 1=1 5=1 6=262144 9=1
+Convolution              /layer3/layer3.2/conv2/Conv 1 1 /layer3/layer3.2/relu/Relu_output_0 /layer3/layer3.2/relu_1/Relu_output_0 0=256 1=3 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.2/conv3/Conv 1 1 /layer3/layer3.2/relu_1/Relu_output_0 /layer3/layer3.2/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+BinaryOp                 /layer3/layer3.2/Add     2 1 /layer3/layer3.2/conv3/Conv_output_0 /layer3/layer3.1/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.2/Add_output_0
+ReLU                     /layer3/layer3.2/relu_2/Relu 1 1 /layer3/layer3.2/Add_output_0 /layer3/layer3.2/relu_2/Relu_output_0
+Split                    splitncnn_10             1 2 /layer3/layer3.2/relu_2/Relu_output_0 /layer3/layer3.2/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.2/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.3/conv1/Conv 1 1 /layer3/layer3.2/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.3/relu/Relu_output_0 0=256 1=1 5=1 6=262144 9=1
+Convolution              /layer3/layer3.3/conv2/Conv 1 1 /layer3/layer3.3/relu/Relu_output_0 /layer3/layer3.3/relu_1/Relu_output_0 0=256 1=3 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.3/conv3/Conv 1 1 /layer3/layer3.3/relu_1/Relu_output_0 /layer3/layer3.3/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+BinaryOp                 /layer3/layer3.3/Add     2 1 /layer3/layer3.3/conv3/Conv_output_0 /layer3/layer3.2/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.3/Add_output_0
+ReLU                     /layer3/layer3.3/relu_2/Relu 1 1 /layer3/layer3.3/Add_output_0 /layer3/layer3.3/relu_2/Relu_output_0
+Split                    splitncnn_11             1 2 /layer3/layer3.3/relu_2/Relu_output_0 /layer3/layer3.3/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.3/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.4/conv1/Conv 1 1 /layer3/layer3.3/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.4/relu/Relu_output_0 0=256 1=1 5=1 6=262144 9=1
+Convolution              /layer3/layer3.4/conv2/Conv 1 1 /layer3/layer3.4/relu/Relu_output_0 /layer3/layer3.4/relu_1/Relu_output_0 0=256 1=3 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.4/conv3/Conv 1 1 /layer3/layer3.4/relu_1/Relu_output_0 /layer3/layer3.4/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+BinaryOp                 /layer3/layer3.4/Add     2 1 /layer3/layer3.4/conv3/Conv_output_0 /layer3/layer3.3/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.4/Add_output_0
+ReLU                     /layer3/layer3.4/relu_2/Relu 1 1 /layer3/layer3.4/Add_output_0 /layer3/layer3.4/relu_2/Relu_output_0
+Split                    splitncnn_12             1 2 /layer3/layer3.4/relu_2/Relu_output_0 /layer3/layer3.4/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.4/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer3/layer3.5/conv1/Conv 1 1 /layer3/layer3.4/relu_2/Relu_output_0_splitncnn_1 /layer3/layer3.5/relu/Relu_output_0 0=256 1=1 5=1 6=262144 9=1
+Convolution              /layer3/layer3.5/conv2/Conv 1 1 /layer3/layer3.5/relu/Relu_output_0 /layer3/layer3.5/relu_1/Relu_output_0 0=256 1=3 4=1 5=1 6=589824 9=1
+Convolution              /layer3/layer3.5/conv3/Conv 1 1 /layer3/layer3.5/relu_1/Relu_output_0 /layer3/layer3.5/conv3/Conv_output_0 0=1024 1=1 5=1 6=262144
+BinaryOp                 /layer3/layer3.5/Add     2 1 /layer3/layer3.5/conv3/Conv_output_0 /layer3/layer3.4/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.5/Add_output_0
+ReLU                     /layer3/layer3.5/relu_2/Relu 1 1 /layer3/layer3.5/Add_output_0 /layer3/layer3.5/relu_2/Relu_output_0
+Split                    splitncnn_13             1 2 /layer3/layer3.5/relu_2/Relu_output_0 /layer3/layer3.5/relu_2/Relu_output_0_splitncnn_0 /layer3/layer3.5/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer4/layer4.0/conv1/Conv 1 1 /layer3/layer3.5/relu_2/Relu_output_0_splitncnn_1 /layer4/layer4.0/relu/Relu_output_0 0=512 1=1 5=1 6=524288 9=1
+Convolution              /layer4/layer4.0/conv2/Conv 1 1 /layer4/layer4.0/relu/Relu_output_0 /layer4/layer4.0/relu_1/Relu_output_0 0=512 1=3 3=2 4=1 5=1 6=2359296 9=1
+Convolution              /layer4/layer4.0/conv3/Conv 1 1 /layer4/layer4.0/relu_1/Relu_output_0 /layer4/layer4.0/conv3/Conv_output_0 0=2048 1=1 5=1 6=1048576
+Convolution              /layer4/layer4.0/downsample/downsample.0/Conv 1 1 /layer3/layer3.5/relu_2/Relu_output_0_splitncnn_0 /layer4/layer4.0/downsample/downsample.0/Conv_output_0 0=2048 1=1 3=2 5=1 6=2097152
+BinaryOp                 /layer4/layer4.0/Add     2 1 /layer4/layer4.0/conv3/Conv_output_0 /layer4/layer4.0/downsample/downsample.0/Conv_output_0 /layer4/layer4.0/Add_output_0
+ReLU                     /layer4/layer4.0/relu_2/Relu 1 1 /layer4/layer4.0/Add_output_0 /layer4/layer4.0/relu_2/Relu_output_0
+Split                    splitncnn_14             1 2 /layer4/layer4.0/relu_2/Relu_output_0 /layer4/layer4.0/relu_2/Relu_output_0_splitncnn_0 /layer4/layer4.0/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer4/layer4.1/conv1/Conv 1 1 /layer4/layer4.0/relu_2/Relu_output_0_splitncnn_1 /layer4/layer4.1/relu/Relu_output_0 0=512 1=1 5=1 6=1048576 9=1
+Convolution              /layer4/layer4.1/conv2/Conv 1 1 /layer4/layer4.1/relu/Relu_output_0 /layer4/layer4.1/relu_1/Relu_output_0 0=512 1=3 4=1 5=1 6=2359296 9=1
+Convolution              /layer4/layer4.1/conv3/Conv 1 1 /layer4/layer4.1/relu_1/Relu_output_0 /layer4/layer4.1/conv3/Conv_output_0 0=2048 1=1 5=1 6=1048576
+BinaryOp                 /layer4/layer4.1/Add     2 1 /layer4/layer4.1/conv3/Conv_output_0 /layer4/layer4.0/relu_2/Relu_output_0_splitncnn_0 /layer4/layer4.1/Add_output_0
+ReLU                     /layer4/layer4.1/relu_2/Relu 1 1 /layer4/layer4.1/Add_output_0 /layer4/layer4.1/relu_2/Relu_output_0
+Split                    splitncnn_15             1 2 /layer4/layer4.1/relu_2/Relu_output_0 /layer4/layer4.1/relu_2/Relu_output_0_splitncnn_0 /layer4/layer4.1/relu_2/Relu_output_0_splitncnn_1
+Convolution              /layer4/layer4.2/conv1/Conv 1 1 /layer4/layer4.1/relu_2/Relu_output_0_splitncnn_1 /layer4/layer4.2/relu/Relu_output_0 0=512 1=1 5=1 6=1048576 9=1
+Convolution              /layer4/layer4.2/conv2/Conv 1 1 /layer4/layer4.2/relu/Relu_output_0 /layer4/layer4.2/relu_1/Relu_output_0 0=512 1=3 4=1 5=1 6=2359296 9=1
+Convolution              /layer4/layer4.2/conv3/Conv 1 1 /layer4/layer4.2/relu_1/Relu_output_0 /layer4/layer4.2/conv3/Conv_output_0 0=2048 1=1 5=1 6=1048576
+BinaryOp                 /layer4/layer4.2/Add     2 1 /layer4/layer4.2/conv3/Conv_output_0 /layer4/layer4.1/relu_2/Relu_output_0_splitncnn_0 /layer4/layer4.2/Add_output_0
+ReLU                     /layer4/layer4.2/relu_2/Relu 1 1 /layer4/layer4.2/Add_output_0 /layer4/layer4.2/relu_2/Relu_output_0
+Pooling                  /avgpool/GlobalAveragePool 1 1 /layer4/layer4.2/relu_2/Relu_output_0 /Flatten_output_0 0=1 4=1
+InnerProduct             /fc/Gemm                 1 1 /Flatten_output_0 output 0=7 1=1 2=14336
