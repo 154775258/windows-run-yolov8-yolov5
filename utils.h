@@ -329,6 +329,15 @@ namespace utils {
     bool Dectet(string path, Model* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
         srand(time(nullptr));
         vector<cv::String> imagePath, videoPath;
+        savePath += "/dectet1";
+        int tmp = 1;
+        struct stat info;
+        while (stat(savePath.c_str(), &info) == 0) {
+            cout << savePath << '\n';
+            while (savePath.back() >= '0' && savePath.back() <= '9')savePath.pop_back();
+            savePath += to_string(++tmp);
+        }
+        createFile(savePath);
         if (checkFile(path)) {
             imagePath = getImagePath(path);
             videoPath = getVideoPath(path);
@@ -353,7 +362,6 @@ namespace utils {
                 cout << "Not file or image or video path\n";
             }
         }
-        cout << "×Ü²âÊÔÊ±³¤" << timeSum << '\n';
     }
 
 }

@@ -10,8 +10,6 @@
 
 using namespace std;
 
-double timeSum = 0;
-
 struct Object
 {
     float x;
@@ -653,7 +651,7 @@ public:
     static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<Object>& objects)
     {
         const int num_points = grid_strides.size();
-        const int num_class = 80;
+        const int num_class = pred.w - 64;
         const int reg_max_1 = 16;
 
         for (int i = 0; i < num_points; i++)
@@ -870,7 +868,6 @@ public:
         } objects_area_greater;
         std::sort(objects.begin(), objects.end(), objects_area_greater);
         double elasped = ncnn::get_current_time() - start_time;
-        timeSum += ncnn::get_current_time() - start_time;
         std::cout << "YoloV5Ncnn " << elasped << "ms   detect\n";
         return objects;
     }
@@ -882,6 +879,4 @@ private:
     float norm_vals[3] = { 1 / 255.f, 1 / 255.f, 1 / 255.f };
     ncnn::UnlockedPoolAllocator blob_pool_allocator;
     ncnn::PoolAllocator workspace_pool_allocator;
-
-
 };
