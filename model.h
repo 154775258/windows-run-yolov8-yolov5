@@ -20,6 +20,117 @@ struct Object
     float prob;
 };
 
+static inline float intersection_area(const Object& a, const Object& b)
+{
+    if (a.x > b.x + b.w || a.x + a.w < b.x || a.y > b.y + b.h || a.y + a.h < b.y)
+    {
+        // no intersection
+        return 0.f;
+    }
+
+    float inter_width = min(a.x + a.w, b.x + b.w) - max(a.x, b.x);
+    float inter_height = min(a.y + a.h, b.y + b.h) - max(a.y, b.y);
+
+    return inter_width * inter_height;
+}
+
+static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
+{
+    picked.clear();
+
+    const int n = faceobjects.size();
+
+    std::vector<float> areas(n);
+    for (int i = 0; i < n; i++)
+    {
+        areas[i] = faceobjects[i].w * faceobjects[i].h;
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        const Object& a = faceobjects[i];
+
+        int keep = 1;
+        for (int j = 0; j < (int)picked.size(); j++)
+        {
+            const Object& b = faceobjects[picked[j]];
+
+            // intersection over union
+            float inter_area = intersection_area(a, b);
+            float union_area = areas[i] + areas[picked[j]] - inter_area;
+            // float IoU = inter_area / union_area
+            if (inter_area / union_area > nms_threshold)
+                keep = 0;
+        }
+
+        if (keep)
+            picked.push_back(i);
+    }
+}
+
+
+static float fast_exp(float x)
+{
+    union {
+        uint32_t i;
+        float f;
+    } v{};
+    v.i = (1 << 23) * (1.4426950409 * x + 126.93490512f);
+    return v.f;
+}
+
+static inline float sigmoid(float x)
+{
+    return static_cast<float>(1.f / (1.f + fast_exp(-x)));
+}
+
+static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
+{
+    int i = left;
+    int j = right;
+    float p = faceobjects[(left + right) / 2].prob;
+
+    while (i <= j)
+    {
+        while (faceobjects[i].prob > p)
+            i++;
+
+        while (faceobjects[j].prob < p)
+            j--;
+
+        if (i <= j)
+        {
+            // swap
+            std::swap(faceobjects[i], faceobjects[j]);
+
+            i++;
+            j--;
+        }
+    }
+
+#pragma omp parallel sections
+    {
+#pragma omp section
+        {
+            if (left < j) qsort_descent_inplace(faceobjects, left, j);
+        }
+#pragma omp section
+        {
+            if (i < right) qsort_descent_inplace(faceobjects, i, right);
+        }
+    }
+}
+
+static void qsort_descent_inplace(std::vector<Object>& faceobjects)
+{
+    if (faceobjects.empty())
+        return;
+
+    qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
+}
+
+
+//建立自己的模型继承这个类重写Init Detect即可使用utils::Dectet
 class Model {
 public:
     virtual bool Init(std::string modelPath) {
@@ -28,72 +139,6 @@ public:
     virtual vector<Object> Detect(cv::Mat bitmap, bool use_gpu) {
         return {};
     }
-};
-
-class ResNet : public Model{
-public:
-
-
-    bool Init(std::string modelPath) override {
-        int ret1 = resNet50.load_param((modelPath + ".param").c_str());
-        int ret2 = resNet50.load_model((modelPath + ".bin").c_str());
-        std::cout << "模型地址: " << &resNet50 << '\n';
-        if (ret1 && ret2)
-            return true;
-        else
-            return false;
-    }
-
-    vector<Object> Detect(cv::Mat image, bool use_gpu) override {
-
-        if (use_gpu == true && ncnn::get_gpu_count() == 0)
-        {
-            use_gpu = false;
-        }
-
-        double start_time = ncnn::get_current_time();
-        // ncnn from bitmap
-        const int target_size = 224;
-
-        cv::resize(image, image, { target_size, target_size });
-
-        ncnn::Mat in = ncnn::Mat::from_pixels_resize(image.data, ncnn::Mat::PIXEL_BGR, image.cols, image.rows, 224, 224);
-
-        float mean[3] = { 0.485 * 255.f, 0.456 * 255.f, 0.406 * 255.f };
-        float std[3] = { 1.0 / 0.229 / 255, 1.0 / 0.224 / 255, 1.0 / 0.225 / 255 };
-        in.substract_mean_normalize(mean, std);
-
-        ncnn::Extractor ex = resNet50.create_extractor();
-
-        ex.set_vulkan_compute(use_gpu);
-        ex.input("input", in);
-        ncnn::Mat preds;
-        ex.extract("output", preds);
-        float max_prob = 0.0f;
-        int max_index = 0;
-        for (int i = 0; i < preds.w; i++) {
-            float prob = preds[i];
-            if (prob > max_prob) {
-                max_prob = prob;
-                max_index = i;
-            }
-            //std::cout << "概率:" << prob << '\n';
-        }
-        vector<Object> ans;
-        double end_time = ncnn::get_current_time() - start_time;
-        std::cout << end_time << "ms Dectet\n";
-        if (max_prob < 2)ans.push_back({ 10,10,0,0,preds.w, max_prob});
-        else ans.push_back({ 10, 10, 0, 0, max_index, max_prob });
-        return ans;
-    }
-
-private:
-    ncnn::Net resNet50;
-
-};
-
-class Yolov5 :public Model{
-public:
 
     static inline float intersection_area(const Object& a, const Object& b)
     {
@@ -107,6 +152,56 @@ public:
         float inter_height = min(a.y + a.h, b.y + b.h) - max(a.y, b.y);
 
         return inter_width * inter_height;
+    }
+
+    static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
+    {
+        picked.clear();
+
+        const int n = faceobjects.size();
+
+        std::vector<float> areas(n);
+        for (int i = 0; i < n; i++)
+        {
+            areas[i] = faceobjects[i].w * faceobjects[i].h;
+        }
+
+        for (int i = 0; i < n; i++)
+        {
+            const Object& a = faceobjects[i];
+
+            int keep = 1;
+            for (int j = 0; j < (int)picked.size(); j++)
+            {
+                const Object& b = faceobjects[picked[j]];
+
+                // intersection over union
+                float inter_area = intersection_area(a, b);
+                float union_area = areas[i] + areas[picked[j]] - inter_area;
+                // float IoU = inter_area / union_area
+                if (inter_area / union_area > nms_threshold)
+                    keep = 0;
+            }
+
+            if (keep)
+                picked.push_back(i);
+        }
+    }
+
+
+    static float fast_exp(float x)
+    {
+        union {
+            uint32_t i;
+            float f;
+        } v{};
+        v.i = (1 << 23) * (1.4426950409 * x + 126.93490512f);
+        return v.f;
+    }
+
+    static inline float sigmoid(float x)
+    {
+        return static_cast<float>(1.f / (1.f + fast_exp(-x)));
     }
 
     static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
@@ -154,44 +249,72 @@ public:
         qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
     }
 
-    static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
-    {
-        picked.clear();
+};
 
-        const int n = faceobjects.size();
+class ResNet : public Model {
+public:
 
-        std::vector<float> areas(n);
-        for (int i = 0; i < n; i++)
+
+    bool Init(std::string modelPath) override {
+        int ret1 = resNet50.load_param((modelPath + ".param").c_str());
+        int ret2 = resNet50.load_model((modelPath + ".bin").c_str());
+        std::cout << "模型地址: " << &resNet50 << '\n';
+        if (ret1 && ret2)
+            return true;
+        else
+            return false;
+    }
+
+    vector<Object> Detect(cv::Mat image, bool use_gpu) override {
+
+        if (use_gpu == true && ncnn::get_gpu_count() == 0)
         {
-            areas[i] = faceobjects[i].w * faceobjects[i].h;
+            use_gpu = false;
         }
 
-        for (int i = 0; i < n; i++)
-        {
-            const Object& a = faceobjects[i];
+        // ncnn from bitmap
+        const int target_size = 224;
 
-            int keep = 1;
-            for (int j = 0; j < (int)picked.size(); j++)
-            {
-                const Object& b = faceobjects[picked[j]];
+        cv::resize(image, image, { target_size, target_size });
 
-                // intersection over union
-                float inter_area = intersection_area(a, b);
-                float union_area = areas[i] + areas[picked[j]] - inter_area;
-                // float IoU = inter_area / union_area
-                if (inter_area / union_area > nms_threshold)
-                    keep = 0;
+        ncnn::Mat in = ncnn::Mat::from_pixels_resize(image.data, ncnn::Mat::PIXEL_BGR, image.cols, image.rows, 224, 224);
+
+        float mean[3] = { 0.485 * 255.f, 0.456 * 255.f, 0.406 * 255.f };
+        float std[3] = { 1.0 / 0.229 / 255, 1.0 / 0.224 / 255, 1.0 / 0.225 / 255 };
+        in.substract_mean_normalize(mean, std);
+
+        ncnn::Extractor ex = resNet50.create_extractor();
+        //ex.set_num_threads(4);
+        ex.set_vulkan_compute(use_gpu);
+        double start_time = ncnn::get_current_time();
+        ex.input("input", in);
+        ncnn::Mat preds;
+        ex.extract("output", preds);
+        float max_prob = 0.0f;
+        int max_index = 0;
+        for (int i = 0; i < preds.w; i++) {
+            float prob = preds[i];
+            if (prob > max_prob) {
+                max_prob = prob;
+                max_index = i;
             }
-
-            if (keep)
-                picked.push_back(i);
+            //std::cout << "概率:" << prob << '\n';
         }
+        vector<Object> ans;
+        double end_time = ncnn::get_current_time() - start_time;
+        std::cout << end_time << "ms Dectet\n";
+        if (max_prob < 2)ans.push_back({ 10,10,0,0,preds.w, max_prob });
+        else ans.push_back({ 10, 10, 0, 0, max_index, max_prob });
+        return ans;
     }
 
-    static inline float sigmoid(float x)
-    {
-        return static_cast<float>(1.f / (1.f + exp(-x)));
-    }
+private:
+    ncnn::Net resNet50;
+
+};
+
+class Yolov5 :public Model {
+public:
 
     static void generate_proposals(const ncnn::Mat& anchors, int stride, const ncnn::Mat& in_pad, const ncnn::Mat& feat_blob, float prob_threshold, std::vector<Object>& objects)
     {
@@ -305,7 +428,7 @@ public:
             int ret = yolov5.load_param((modelPath + ".param").c_str());
             if (ret != 0)
             {
-                std::cout <<  "YoloV5Ncnn load_param failed";
+                std::cout << "YoloV5Ncnn load_param failed";
                 return false;
             }
         }
@@ -315,14 +438,14 @@ public:
             int ret = yolov5.load_model((modelPath + ".bin").c_str());
             if (ret != 0)
             {
-                std::cout<< "YoloV5Ncnn  load_model failed";
+                std::cout << "YoloV5Ncnn  load_model failed";
                 return false;
             }
         }
 
         std::cout << "Yolov5 模型已加载\n";
         std::cout << "模型地址: " << &yolov5 << '\n';
-        
+
         return true;
     }
 
@@ -333,7 +456,6 @@ public:
         {
             use_gpu = false;
         }
-        double start_time = ncnn::get_current_time();
 
         const int width = bitmap.cols;
         const int height = bitmap.rows;
@@ -367,7 +489,7 @@ public:
         int hpad = (h + 31) / 32 * 32 - h;
         ncnn::Mat in_pad;
         ncnn::copy_make_border(in, in_pad, hpad / 2, hpad - hpad / 2, wpad / 2, wpad - wpad / 2, ncnn::BORDER_CONSTANT, 114.f);
-
+        double start_time;
         // yolov5
         std::vector<Object> objects;
         {
@@ -378,9 +500,9 @@ public:
             in_pad.substract_mean_normalize(0, norm_vals);
 
             ncnn::Extractor ex = yolov5.create_extractor();
-
+            //ex.set_num_threads(4);
             ex.set_vulkan_compute(use_gpu);
-
+            start_time = ncnn::get_current_time();
             ex.input("images", in_pad);
 
             std::vector<Object> proposals;
@@ -492,7 +614,7 @@ public:
          */
 
         double elasped = ncnn::get_current_time() - start_time;
-        std::cout<<  "YoloV5Ncnn " << elasped << "ms   detect\n";
+        std::cout << "YoloV5Ncnn " << elasped << "ms   detect\n";
 
         return objects;
     }
@@ -521,113 +643,6 @@ public:
         workspace_pool_allocator.set_size_compare_ratio(0.f);
     }
 
-
-    static float fast_exp(float x)
-    {
-        union {
-            uint32_t i;
-            float f;
-        } v{};
-        v.i = (1 << 23) * (1.4426950409 * x + 126.93490512f);
-        return v.f;
-    }
-
-    static float sigmoid(float x)
-    {
-        return 1.0f / (1.0f + fast_exp(-x));
-    }
-    static inline float intersection_area(const Object& a, const Object& b)
-    {
-        if (a.x > b.x + b.w || a.x + a.w < b.x || a.y > b.y + b.h || a.y + a.h < b.y)
-        {
-            // no intersection
-            return 0.f;
-        }
-
-        float inter_width = min(a.x + a.w, b.x + b.w) - max(a.x, b.x);
-        float inter_height = min(a.y + a.h, b.y + b.h) - max(a.y, b.y);
-
-        return inter_width * inter_height;
-    }
-
-    static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
-    {
-        int i = left;
-        int j = right;
-        float p = faceobjects[(left + right) / 2].prob;
-
-        while (i <= j)
-        {
-            while (faceobjects[i].prob > p)
-                i++;
-
-            while (faceobjects[j].prob < p)
-                j--;
-
-            if (i <= j)
-            {
-                // swap
-                std::swap(faceobjects[i], faceobjects[j]);
-
-                i++;
-                j--;
-            }
-        }
-
-        //     #pragma omp parallel sections
-        {
-            //         #pragma omp section
-            {
-                if (left < j) qsort_descent_inplace(faceobjects, left, j);
-            }
-            //         #pragma omp section
-            {
-                if (i < right) qsort_descent_inplace(faceobjects, i, right);
-            }
-        }
-    }
-
-    static void qsort_descent_inplace(std::vector<Object>& faceobjects)
-    {
-        if (faceobjects.empty())
-            return;
-
-        qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
-    }
-
-    static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
-    {
-        picked.clear();
-
-        const int n = faceobjects.size();
-
-        std::vector<float> areas(n);
-        for (int i = 0; i < n; i++)
-        {
-            areas[i] = faceobjects[i].w * faceobjects[i].h;
-        }
-
-        for (int i = 0; i < n; i++)
-        {
-            const Object& a = faceobjects[i];
-
-            int keep = 1;
-            for (int j = 0; j < (int)picked.size(); j++)
-            {
-                const Object& b = faceobjects[picked[j]];
-
-                // intersection over union
-                float inter_area = intersection_area(a, b);
-                float union_area = areas[i] + areas[picked[j]] - inter_area;
-                // float IoU = inter_area / union_area
-                if (inter_area / union_area > nms_threshold)
-                    keep = 0;
-            }
-
-            if (keep)
-                picked.push_back(i);
-        }
-    }
     static void generate_grids_and_stride(const int target_w, const int target_h, std::vector<int>& strides, std::vector<GridAndStride>& grid_strides)
     {
         for (int i = 0; i < (int)strides.size(); i++)
@@ -651,7 +666,7 @@ public:
     static void generate_proposals(std::vector<GridAndStride> grid_strides, const ncnn::Mat& pred, float prob_threshold, std::vector<Object>& objects)
     {
         const int num_points = grid_strides.size();
-        const int num_class = pred.w - 64;
+        const int num_class = pred.w - 64;//-64即为模型实际可识别类别数量
         const int reg_max_1 = 16;
 
         for (int i = 0; i < num_points; i++)
@@ -754,16 +769,16 @@ public:
             std::cout << "YoloV8Ncnn load_param failed";
             return false;
         }
-    
 
 
-       ret = yolo.load_model((modelPath + ".bin").c_str());
+
+        ret = yolo.load_model((modelPath + ".bin").c_str());
         if (ret != 0)
         {
             std::cout << "YoloV8Ncnn  load_model failed";
             return false;
         }
-    
+
 
         yolo.load_param((modelName + ".param").c_str());
         yolo.load_model((modelName + ".bin").c_str());
@@ -812,6 +827,7 @@ public:
         in_pad.substract_mean_normalize(0, norm_vals);
 
         ncnn::Extractor ex = yolo.create_extractor();
+        //ex.set_num_threads(4);
         double start_time = ncnn::get_current_time();
 
         ex.input("images", in_pad);

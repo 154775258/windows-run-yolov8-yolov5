@@ -75,6 +75,63 @@ For classification models, modify the .param file as follows:
 3. In the line with the InnerProduct operation, change the fourth parameter to "output". 
 By making these modifications, you will be able to run the model within the current framework. It is recommended to use YOLOv5-5.6.2 for converting to ONNX and NCNN. The YOLOv5s, YOLOv5m, and YOLOv5s6 models may not require any additional operations and can be used directly.
 
+# yolov8->ncnn First
+we need to find the class c2f in the file "block.py" located at "anaconda3\envs\yolov8\Lib\site-packages\ultralytics\nn\modules". Replace the code in the forward function with the following:
+
+```  
+def forward(self, x):
+    """Forward pass through C2f layer."""
+    #y = list(self.cv1(x).chunk(2, 1))
+    #y.extend(m(y[-1]) for m in self.m)
+    #return self.cv2(torch.cat(y, 1))
+
+    x = self.cv1(x)
+    x = [x, x[:, self.c:, ...]]
+    x.extend(m(x[-1]) for m in self.m)
+    x.pop(1)
+    return self.cv2(torch.cat(x, 1))
+```
+Then, find the class Dectet in the file "head.py" located in the same directory. Replace the forward function with the following:
+
+```
+def forward(self, x):
+    shape = x[0].shape  # BCHW
+    for i in range(self.nl):
+        x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+    if self.training:
+        return x
+    elif self.dynamic or self.shape != shape:
+        self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+        self.shape = shape
+
+    # x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+    # if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
+    #     box = x_cat[:, :self.reg_max * 4]
+    #     cls = x_cat[:, self.reg_max * 4:]
+    # else:
+    #     box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+    # dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+    # y = torch.cat((dbox, cls.sigmoid()), 1)
+    # return y if self.export else (y, x)
+
+    pred = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2).permute(0, 2, 1)
+    return pred
+```
+
+Then use the yolov8 built-in 
+
+```
+modelPath = 'your path'
+model = YOLO(modelPath)
+model.export(format='ncnn', half=True, imgsz=640)
+```
+
+ to generate the param file. Add 1 to each of the two arrays in the second line and modify these two numbers directly!!! 
+
+Add Permute at the end, 1111 1 1 out0 output 0=1 in the first line, change input in0 to images, and in the second line, change in0 to images. 
+
+This will successfully run the yolov8 model in this project.
+
 ### onnx -> ncnn online conversion website https://convertmodel.com/
 
 # 在NCNN中使用YOLOv5和图像分类
@@ -154,4 +211,61 @@ utils::Dectet("./images", &model, utils::colorClasses);
 3. 在包含InnerProduct操作的行中，将第四个参数改为"output"。
 通过进行这些修改，您将能够在当前框架中运行模型。建议使用YOLOv5-5.6.2进行转换为ONNX和NCNN。YOLOv5s、YOLOv5m和YOLOv5s6模型可能不需要任何额外的操作，可以直接使用。
 
+# yolov8->ncnn 
+首先我们需要找到anaconda3\envs\yolov8\Lib\site-packages\ultralytics\nn\modules\block.py中的 class c2f 将其中forward的代码替换为
+
+```    
+def forward(self, x):
+        """Forward pass through C2f layer."""
+        #y = list(self.cv1(x).chunk(2, 1))
+        #y.extend(m(y[-1]) for m in self.m)
+        #return self.cv2(torch.cat(y, 1))
+
+        x = self.cv1(x)
+        x = [x, x[:, self.c:, ...]]
+        x.extend(m(x[-1]) for m in self.m)
+        x.pop(1)
+        return self.cv2(torch.cat(x, 1))
+
+``` 
+然后找到同级目录下head.py 中的 class Dectet 将其中的forward 替换为
+
+ ```   
+ def forward(self, x):
+        shape = x[0].shape  # BCHW
+        for i in range(self.nl):
+            x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
+        if self.training:
+            return x
+        elif self.dynamic or self.shape != shape:
+            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            self.shape = shape
+
+        # x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
+        # if self.export and self.format in ('saved_model', 'pb', 'tflite', 'edgetpu', 'tfjs'):  # avoid TF FlexSplitV ops
+        #     box = x_cat[:, :self.reg_max * 4]
+        #     cls = x_cat[:, self.reg_max * 4:]
+        # else:
+        #     box, cls = x_cat.split((self.reg_max * 4, self.nc), 1)
+        # dbox = dist2bbox(self.dfl(box), self.anchors.unsqueeze(0), xywh=True, dim=1) * self.strides
+        # y = torch.cat((dbox, cls.sigmoid()), 1)
+        # return y if self.export else (y, x)
+
+        pred = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2).permute(0, 2, 1)
+        return pred
+```
+
+然后使用yolov8 自带的
+
+```
+modelPath = 'your path'
+model = YOLO(modelPath)
+model.export(format='ncnn', half=True, imgsz=640)
+``` 
+
+将生成的param 第二行两个数组各加1 直接修改这两个数字！！！ 
+
+在最后一行添加Permute  1111 1 1 out0 output 0=1 第一行input in0 改为images 第二行in0 改为images
+
+即可成功在此项目运行yolov8 模型
 ### onnx->ncnn 在线转换网站 https://convertmodel.com/
