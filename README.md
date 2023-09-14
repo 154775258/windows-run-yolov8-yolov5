@@ -65,7 +65,7 @@ model.Init("./model/color");
 //saveFlag is set to true by default, which means the processed image or video will be saved. The default save location is the "output" folder in this project. showFlag is set to false by default, which means the processed image will not be displayed.
 utils::Dectet("./images", &model, utils::colorClasses);
 ```
-##Model Conversion Video Tutorial
+## Model Conversion Video Tutorial
 https://www.bilibili.com/video/BV13u411P71K/?spm_id_from=333.999.0.0
 
 ## If you want to join your own new model
@@ -204,7 +204,7 @@ model.Init("./model/color");
 //saveFlag默认为true，表示处理后的图像或视频将被保存。默认保存位置是项目中的"output"文件夹。showFlag默认为false，表示不显示处理后的图像。
 utils::Dectet("./images", &model, utils::colorClasses);
 ```
-##模型转换视频教程
+## 模型转换视频教程
 https://www.bilibili.com/video/BV13u411P71K/?spm_id_from=333.999.0.0
 
 ## 如果你想使用自己的新模型
