@@ -155,7 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="model.h" />
+    <ClInclude Include="ResNet.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="yolo-seg.h" />
+    <ClInclude Include="yolo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

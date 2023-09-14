@@ -1,8 +1,9 @@
-#include"model.h"
+#include"yolo.h"
 #include"utils.h"
-#include <ncnn/net.h>
+#include "yolo-seg.h"
 
 int main() {
+	
 	//we can use ResNet or Yolo to create model.
 	Yolov8 model;
 	//put modelPath to Init
@@ -13,5 +14,10 @@ int main() {
 	//double start_time = ncnn::get_current_time();
 	utils::Dectet("./images", &model, utils::mainClasses);
 	//cout << "×ÜºÄÊ±: " << ncnn::get_current_time() - start_time << "ms\n";
-	
+	 
+    Yolov5Seg SegModel;
+    vector<ObjectSeg> objects;
+	SegModel.Init("./model/yolov5s-seg");
+	utils::DectetSeg("./images", &SegModel, utils::mainClasses);
+
 }

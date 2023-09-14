@@ -58,5 +58,14 @@
     <ClInclude Include="utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="ResNet.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="yolo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="yolo-seg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
