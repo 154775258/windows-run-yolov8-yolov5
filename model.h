@@ -258,7 +258,7 @@ public:
     bool Init(std::string modelPath) override {
         int ret1 = resNet50.load_param((modelPath + ".param").c_str());
         int ret2 = resNet50.load_model((modelPath + ".bin").c_str());
-        std::cout << "模型地址: " << &resNet50 << '\n';
+        std::cout << "ResNet Model loaded\n";
         if (ret1 && ret2)
             return true;
         else
@@ -428,7 +428,7 @@ public:
             int ret = yolov5.load_param((modelPath + ".param").c_str());
             if (ret != 0)
             {
-                std::cout << "YoloV5Ncnn load_param failed";
+                std::cout << "YoloV5Ncnn load_param failed\n";
                 return false;
             }
         }
@@ -438,13 +438,13 @@ public:
             int ret = yolov5.load_model((modelPath + ".bin").c_str());
             if (ret != 0)
             {
-                std::cout << "YoloV5Ncnn  load_model failed";
+                std::cout << "YoloV5Ncnn  load_model failed\n";
                 return false;
             }
         }
 
-        std::cout << "Yolov5 模型已加载\n";
-        std::cout << "模型地址: " << &yolov5 << '\n';
+        std::cout << "Yolov5 Model loaded\n";
+        //std::cout << "模型地址: " << &yolov5 << '\n';
 
         return true;
     }
@@ -766,7 +766,7 @@ public:
         int ret = yolo.load_param((modelPath + ".param").c_str());
         if (ret != 0)
         {
-            std::cout << "YoloV8Ncnn load_param failed";
+            std::cout << "YoloV8Ncnn load_param failed\n";
             return false;
         }
 
@@ -775,7 +775,7 @@ public:
         ret = yolo.load_model((modelPath + ".bin").c_str());
         if (ret != 0)
         {
-            std::cout << "YoloV8Ncnn  load_model failed";
+            std::cout << "YoloV8Ncnn  load_model failed\n";
             return false;
         }
 
@@ -785,8 +785,8 @@ public:
 
         target_size = 640;
 
-        std::cout << "Yolov8 模型已加载\n";
-        std::cout << "模型地址: " << &yolo << '\n';
+        std::cout << "Yolov8 Model loaded\n";
+        //std::cout << "模型地址: " << &yolo << '\n';
 
         return 1;
     }
