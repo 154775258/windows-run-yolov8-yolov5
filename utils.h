@@ -60,7 +60,7 @@ namespace utils {
             else
                 text = to_string(box.label) + to_string(box.prob);
             int x = box.x, y = box.y, w = box.w, h = box.h;
-            cv::rectangle(image, { x, y, w, h }, cv::Scalar(0, 0, 0));
+            cv::rectangle(image, { x, y, w, h }, cv::Scalar(0, 0, 255));
             cv::putText(image, text, cv::Point(x, y), cv::FONT_HERSHEY_COMPLEX_SMALL, 0.8f, cv::Scalar(0, 0, 255), 1, 1);
         }
         return image;
@@ -135,11 +135,7 @@ namespace utils {
 
         auto image = cv::imread("./images/2.jpg");
 
-        cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-
         std::vector<Object> res = yoloModel.Dectet(image, true);
-
-        cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
 
         //image = drawYoloRect(image, res, yoloShapeClasses);
 
@@ -347,10 +343,8 @@ namespace utils {
     }
 
     void dectetImage(string path, Model* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
-        cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
-        cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
+        cv::Mat image = cv::imread(path);
         std::vector<Object> res = model->Dectet(image, true);
-        cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
         image = drawYoloRect(image, res, classes);
         if (saveFlag) {
             string saveName = savePath + '/' + to_string(rand()) + ".jpg";
@@ -408,9 +402,7 @@ namespace utils {
         for (int i = 0; i < imagePathList.size(); ++i) {
             cv::Mat image = cv::imread(imagePathList[i], cv::IMREAD_COLOR);
             cv::resize(image, image, cv::Size(640, 640));
-            cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
             vector<Object> res = model->Dectet(image, true);
-            cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
             vector<vector<int>> ans;
             string labelName = imagePathList[i];
             while (labelName.back() != '.')labelName.pop_back();
@@ -428,11 +420,12 @@ namespace utils {
             vector<vector<int>> yoloRect = getYoloRect(labelPath + "\\" + tmp);
             //cout << labelPath + "\\" + tmp << '\n';
             if (yoloRect.empty())continue;
-            /*
+            /*            
             for (int j = 0; j < yoloRect.size(); ++j) {
                 cout << res[j].label << ' ' << (int)res[j].x << ' ' << (int)res[j].y << ' ' << (int)res[j].x + (int)res[j].w << ' ' << (int)res[j].y + (int)res[j].h << '\n';
-            }
-            */
+            }*/
+
+            
             allLabelNum += res.size();
             for (int j = 0; j < res.size(); ++j) {
                 ans.push_back({ res[j].label,(int)res[j].x,(int)res[j].y, (int)res[j].x + (int)res[j].w,(int)res[j].y + (int)res[j].h });
@@ -503,9 +496,7 @@ namespace utils {
 
     void dectetSegImage(string path, SegModel* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
         cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
-        cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
         vector<ObjectSeg> objects = model->Dectet(image, true);
-        cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
         image = model->draw_objects(image, objects, classes);
         if (saveFlag) {
             string saveName = savePath + '/' + to_string(rand()) + ".jpg";
