@@ -11,17 +11,8 @@
 
 #define MAX_STRIDE 64
 
-struct ObjectSeg
-{
-    cv::Rect_<float> rect;
-    int label;
-    float prob;
-    std::vector<float> mask_feat;
-    cv::Mat cv_mask;
 
-};
-
-class Yolov5Seg{
+class Yolov5Seg:public SegModel{
 public:
     static void slice(const ncnn::Mat& in, ncnn::Mat& out, int start, int end, int axis)
     {
@@ -352,7 +343,7 @@ public:
 
     }
 
-    bool Init(string modelName) {
+    bool Init(string modelName) override {
         ncnn::Option opt;
         if (ncnn::get_gpu_count() != 0)
             opt.use_vulkan_compute = true;
@@ -387,12 +378,16 @@ public:
     }
 
 
-    int Dectet(cv::Mat& bgr, vector<ObjectSeg>& objects)
+    vector<ObjectSeg> Dectet(cv::Mat& bgr,bool use_gpu)override
     {
+        if (use_gpu == true && ncnn::get_gpu_count() == 0)
+        {
+            use_gpu = false;
+        }
         const int target_size = 640;
         const float prob_threshold = 0.25f;
         const float nms_threshold = 0.45f;
-
+        vector<ObjectSeg> objects;
         int img_w = bgr.cols;
         int img_h = bgr.rows;
 
@@ -427,6 +422,7 @@ public:
 
         ncnn::Extractor ex = yolov5.create_extractor();
         double start_time = ncnn::get_current_time();
+        ex.set_vulkan_compute(use_gpu);
         ex.input("images", in_pad);
 
         std::vector<ObjectSeg> proposals;
@@ -536,25 +532,10 @@ public:
         }
         double elasped = ncnn::get_current_time() - start_time;
         std::cout << "YoloV5Ncnn " << elasped << "ms   detect\n";
-        return 0;
+        return objects;
     }
 
-    cv::Mat draw_objects(const cv::Mat& bgr, const std::vector<ObjectSeg>& objects, vector<string> class_names = {
-                                            "person", "bicycle", "car", "motorcycle", "airplane", "bus",
-                                            "train", "truck", "boat", "traffic light", "fire hydrant",
-                                            "stop sign", "parking meter", "bench", "bird", "cat", "dog",
-                                            "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
-                                            "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-                                            "skis", "snowboard", "sports ball", "kite", "baseball bat",
-                                            "baseball glove", "skateboard", "surfboard", "tennis racket",
-                                            "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-                                            "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-                                            "hot dog", "pizza", "donut", "cake", "chair", "couch",
-                                            "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
-                                            "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
-                                            "toaster", "sink", "refrigerator", "book", "clock", "vase",
-                                            "scissors", "teddy bear", "hair drier", "toothbrush"
-        })
+    cv::Mat draw_objects(const cv::Mat& bgr, const std::vector<ObjectSeg>& objects, vector<string> class_names)override
     {
         static const unsigned char colors[81][3] = {
                 {56,  0,   255},

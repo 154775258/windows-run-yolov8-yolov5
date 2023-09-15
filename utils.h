@@ -32,7 +32,7 @@ namespace utils {
     void saveImage2Classes(cv::Mat image, vector<Object> res, vector<string> classes);//保存画框标识类别后的图片
     vector<cv::Mat> readJpgFiles(const std::string& folderPath);
     bool Dectet(string path, Model* model, vector<string>& classes, bool saveFlag = true, string savePath = "./output", bool showFlag = false);//目标检测检测图片视频并选择是否保存到本地
-    bool DectetSeg(string path, Yolov5Seg* model, vector<string>& classes, bool saveFlag = true, string savePath = "./output", bool showFlag = false);//图像分割检测图片视频并选择是否保存到本地
+    bool DectetSeg(string path, SegModel* model, vector<string>& classes, bool saveFlag = true, string savePath = "./output", bool showFlag = false);//图像分割检测图片视频并选择是否保存到本地
     vector<cv::String> getImagePath(string path);
     vector<cv::String> getVideoPath(string path);
 
@@ -74,6 +74,23 @@ namespace utils {
         }
         return ans;
     }
+
+    std::vector<std::string> cocoClasses = {
+                                            "person", "bicycle", "car", "motorcycle", "airplane", "bus",
+                                            "train", "truck", "boat", "traffic light", "fire hydrant",
+                                            "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                                            "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                                            "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                                            "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                                            "baseball glove", "skateboard", "surfboard", "tennis racket",
+                                            "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                                            "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                                            "hot dog", "pizza", "donut", "cake", "chair", "couch",
+                                            "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+                                            "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+                                            "toaster", "sink", "refrigerator", "book", "clock", "vase",
+                                            "scissors", "teddy bear", "hair drier", "toothbrush"
+    };
 
     std::vector<std::string> colorClasses = {
     "red", "blue", "white", "yellow", "cyan", "purple", "green", "black"
@@ -484,11 +501,10 @@ namespace utils {
         }
     }
 
-    void dectetSegImage(string path, Yolov5Seg* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
+    void dectetSegImage(string path, SegModel* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
         cv::Mat image = cv::imread(path, cv::IMREAD_COLOR);
         cv::cvtColor(image, image, cv::COLOR_BGR2RGB);
-        vector<ObjectSeg> objects;
-        model->Dectet(image, objects);
+        vector<ObjectSeg> objects = model->Dectet(image, true);
         cv::cvtColor(image, image, cv::COLOR_RGB2BGR);
         image = model->draw_objects(image, objects, classes);
         if (saveFlag) {
@@ -502,7 +518,7 @@ namespace utils {
 
     }
 
-    void dectetSegVideo(string path, Yolov5Seg* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
+    void dectetSegVideo(string path, SegModel* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
         cv::VideoCapture video(path);
         if (!video.isOpened()) {
             std::cout << "视频未找到\n";
@@ -517,8 +533,7 @@ namespace utils {
         dectetfps = 0;
         cv::Mat frame;
         while (video.read(frame)) {
-            vector<ObjectSeg> objects;
-            model->Dectet(frame, objects);
+            vector<ObjectSeg> objects = model->Dectet(frame, true);
             frame = model->draw_objects(frame, objects, classes);//画框函数
             dectetfps++;
             if (saveFlag)
@@ -540,7 +555,7 @@ namespace utils {
 
     }
 
-    bool DectetSeg(string path, Yolov5Seg* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
+    bool DectetSeg(string path, SegModel* model, vector<string>& classes, bool saveFlag, string savePath, bool showFlag) {
         srand(time(nullptr));
         vector<cv::String> imagePath, videoPath;
         createFile(savePath);
