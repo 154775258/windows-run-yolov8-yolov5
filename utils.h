@@ -128,10 +128,10 @@ namespace utils {
         ResNet shapeModel;
         Yolov5 yoloModel;
         Yolov5 TFTModel;
-        model.Init("./model/color");
-        shapeModel.Init("./model/resShape");
-        yoloModel.Init("./model/shape");
-        TFTModel.Init("./model/main");
+        model.Init("./model/color",224,0.2, 0);
+        shapeModel.Init("./model/resShape",224, 0.2, 0);
+        yoloModel.Init("./model/shape", 640, 0.25, 0.45);
+        TFTModel.Init("./model/main", 640, 0.25, 0.45);
 
         auto image = cv::imread("./images/2.jpg");
 
@@ -158,7 +158,7 @@ namespace utils {
     void outImageTest(string path, string modelPath, vector<string> classes = shapeClasses) {
         srand(time(0));
         Yolov5 yoloModel;
-        yoloModel.Init(modelPath);
+        yoloModel.Init(modelPath, 640, 0.25,0.45);
         vector<cv::Mat> images = readJpgFiles(path);
         for (int i = 0; i < images.size(); ++i) {
             auto tmp = yoloModel.Dectet(images[i], true);
@@ -184,7 +184,7 @@ namespace utils {
     void videoTest() {
         cv::VideoCapture video("./video/1.mp4");
         Yolov5 yoloModel;
-        yoloModel.Init("./model/main");
+        yoloModel.Init("./model/main",640,0.25, 0.45);
         if (!video.isOpened()) {
             std::cout << "ÊÓÆµÎ´ÕÒµ½\n";
             return;

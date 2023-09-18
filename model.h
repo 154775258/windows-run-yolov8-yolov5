@@ -33,7 +33,7 @@ using namespace std;
 //建立自己的模型继承这个类重写Init Detect即可使用utils::Dectet
 class Model {
 public:
-    virtual bool Init(std::string modelPath) {
+    virtual bool Init(std::string modelPath, int targetSize, double conf, double iou) {
         return 1;
     }
     virtual vector<Object> Dectet(cv::Mat bitmap, bool use_gpu) {
@@ -43,7 +43,7 @@ public:
 
 class SegModel {
 public:
-    virtual bool Init(std::string modelPath) {
+    virtual bool Init(std::string modelPath, int targetSize, double conf, double iou) {
         return 1;
     }
     virtual vector<ObjectSeg> Dectet(cv::Mat& bgr, bool use_gpu) {

@@ -343,13 +343,14 @@ public:
 
     }
 
-    bool Init(string modelName) override {
+    bool Init(string modelName, int targetSize, double conf, double iou) override {
         ncnn::Option opt;
         if (ncnn::get_gpu_count() != 0)
             opt.use_vulkan_compute = true;
-
+        prob_threshold = conf;
+        nms_threshold = iou;
         yolov5.opt = opt;
-
+        target_size = targetSize;
 
         // init param
         {
@@ -384,9 +385,6 @@ public:
         {
             use_gpu = false;
         }
-        const int target_size = 640;
-        const float prob_threshold = 0.25f;
-        const float nms_threshold = 0.45f;
         vector<ObjectSeg> objects;
         int img_w = bgr.cols;
         int img_h = bgr.rows;
@@ -703,5 +701,7 @@ public:
     */
     private:
         ncnn::Net yolov5;
-
+        int target_size = 640;
+        float prob_threshold = 0.25f;
+        float nms_threshold = 0.45f;
 };

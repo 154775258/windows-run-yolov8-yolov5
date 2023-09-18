@@ -6,7 +6,7 @@ int main() {
 	//we can use ResNet or Yolo to create model.
 	Yolov8 model;
 	//put modelPath to Init
-	model.Init("./model/yolov8s");
+	model.Init("./model/yolov8s", 640,0.5,0.45);
 	//we can use "utils::Dectet" to dectet image and video and file
 	//Dectet(string path, Model* model, vector<string> classes, bool saveFlag, string savePath, bool showFlag)
 	//saveFlag is set to true by default, which means the processed image or video will be saved. The default save location is the "output" folder in this project. showFlag is set to false by default, which means the processed image will not be displayed.
@@ -16,7 +16,7 @@ int main() {
 	
 	 
     Yolov5Seg SegModel;
-	SegModel.Init("./model/yolov5s-seg");
+	SegModel.Init("./model/yolov5s-seg", 640,0.5, 0.45);
 	start_time = ncnn::get_current_time();
 	utils::DectetSeg("./images", &SegModel, utils::cocoClasses);
 	cout << "×ÜºÄÊ±: " << ncnn::get_current_time() - start_time << "ms\n";

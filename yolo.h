@@ -210,7 +210,7 @@ public:
         }
     }
 
-    bool Init(std::string modelName) override
+    bool Init(std::string modelName, int targetSize, double conf, double iou) override
     {
         ncnn::Option opt;
         opt.lightmode = true;
@@ -218,9 +218,10 @@ public:
         opt.blob_allocator = &g_blob_pool_allocator;
         opt.workspace_allocator = &g_workspace_pool_allocator;
         opt.use_packing_layout = true;
-
+        prob_threshold = conf;
+        nms_threshold = iou;
         std::string modelPath = modelName;
-
+        target_size = targetSize;
         // use vulkan compute
         if (ncnn::get_gpu_count() != 0)
             opt.use_vulkan_compute = true;
@@ -265,10 +266,6 @@ public:
         const int width = bitmap.cols;
         const int height = bitmap.rows;
 
-
-        // ncnn from bitmap
-        const int target_size = 640;
-
         // letterbox pad to multiple of 32
         int w = width;
         int h = height;
@@ -298,9 +295,6 @@ public:
         // yolov5
         std::vector<Object> objects;
         {
-            const float prob_threshold = 0.25f;
-            const float nms_threshold = 0.45f;
-
             const float norm_vals[3] = { 1 / 255.f, 1 / 255.f, 1 / 255.f };
             in_pad.substract_mean_normalize(0, norm_vals);
 
@@ -428,6 +422,9 @@ private:
     ncnn::UnlockedPoolAllocator g_blob_pool_allocator;
     ncnn::PoolAllocator g_workspace_pool_allocator;
     ncnn::Net yolov5;
+    int target_size = 640;
+    float prob_threshold = 0.25f;
+    float nms_threshold = 0.45f;
 
 };
 
@@ -550,7 +547,7 @@ public:
     }
 
 
-    bool Init(string modelName)override
+    bool Init(string modelName, int targetSize, double conf, double iou)override
     {
 
         ncnn::Option opt;
@@ -559,7 +556,8 @@ public:
         opt.blob_allocator = &blob_pool_allocator;
         opt.workspace_allocator = &workspace_pool_allocator;
         opt.use_packing_layout = true;
-
+        prob_threshold = conf;
+        nms_threshold = iou;
         std::string modelPath = modelName;
 
         // use vulkan compute
@@ -588,7 +586,7 @@ public:
         yolo.load_param((modelName + ".param").c_str());
         yolo.load_model((modelName + ".bin").c_str());
 
-        target_size = 640;
+        target_size = targetSize;
 
         std::cout << "Yolov8 Model loaded\n";
         //std::cout << "Ä£ÐÍµØÖ·: " << &yolo << '\n';
@@ -599,8 +597,6 @@ public:
     vector<Object> Dectet(cv::Mat rgb, bool use_gpu)override
     {
         vector<Object> objects;
-        float prob_threshold = 0.25;
-        float nms_threshold = 0.45;
 
         int width = rgb.cols;
         int height = rgb.rows;
@@ -698,6 +694,8 @@ private:
     int target_size;
     float mean_vals[3] = { 103.53f, 116.28f, 123.675f };
     float norm_vals[3] = { 1 / 255.f, 1 / 255.f, 1 / 255.f };
+    float prob_threshold = 0.25;
+    float nms_threshold = 0.45;
     ncnn::UnlockedPoolAllocator blob_pool_allocator;
     ncnn::PoolAllocator workspace_pool_allocator;
 };

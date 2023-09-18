@@ -13,10 +13,11 @@ class ResNet : public Model {
 public:
 
 
-    bool Init(std::string modelPath) override {
+    bool Init(std::string modelPath, int targetSize, double conf, double iou) override {
         int ret1 = resNet50.load_param((modelPath + ".param").c_str());
         int ret2 = resNet50.load_model((modelPath + ".bin").c_str());
         std::cout << "ResNet Model loaded\n";
+        target_size = targetSize;
         if (ret1 && ret2)
             return true;
         else
@@ -31,7 +32,6 @@ public:
         }
 
         // ncnn from bitmap
-        const int target_size = 224;
 
         cv::resize(image, image, { target_size, target_size });
 
@@ -68,5 +68,5 @@ public:
 
 private:
     ncnn::Net resNet50;
-
+    int target_size=224;
 };
